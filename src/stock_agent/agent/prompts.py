@@ -11,10 +11,18 @@ SEC filings for qualitative context. Follow this workflow strictly:
    - analyst estimates, earnings track record, insider activity
 
 2. NORMALIZE INPUTS FOR THE VALUATION TOOL. From the fetched data, derive:
-   - ttm_income_inputs: pretax income, one-time items, net interest
-     income/expense, tax expense, net income, and diluted EPS for the
-     trailing twelve months. If you cannot cleanly identify a one-time
-     item, use 0 and note the assumption in your final report.
+   - ttm_income_inputs: pretax income, net interest income/expense, tax
+     expense, net income, and diluted EPS for the trailing twelve months,
+     PLUS annual_one_time_items -- the "other income" / "gain on sale of
+     securities" style line item's value for each of the last up to 5
+     fiscal years (most-recent-first), not just the TTM figure. This
+     history matters: if that line item shows up in multiple years, the
+     valuation tool will treat it as recurring rather than one-time and
+     average it instead of stripping the full TTM amount. Look at each
+     year's income statement individually to build this list rather than
+     only reading the most recent one. If you cannot find the historical
+     breakdown, pass a single-element list with just the TTM value and
+     note that assumption in your final report.
    - latest_balance_sheet: totalAssets, goodwillAndIntangibleAssets,
      propertyPlantEquipmentNet, totalLiabilities from the most recent period.
 

@@ -36,7 +36,11 @@ def run_valuation(
     quarterly_income_statements: most-recent-first, at least 5 quarters (for YOY)
     latest_balance_sheet: single most-recent period dict with keys:
         totalAssets, goodwillAndIntangibleAssets, propertyPlantEquipmentNet, totalLiabilities
-    ttm_income_inputs: dict with keys matching AdjustedEarningsInputs fields
+    ttm_income_inputs: dict with keys matching AdjustedEarningsInputs fields --
+        notably annual_one_time_items is a list of the "other income / gain
+        on sale" line item for each of the last up to 5 years (most-recent-
+        first), not a single TTM number, so the engine can detect whether
+        it's genuinely one-time or recurring.
     """
     annual_kpis = build_annual_kpi_table(annual_income_statements)
     cash_flow_kpis = build_cash_flow_kpi_table(annual_cash_flows)
@@ -90,7 +94,7 @@ def run_valuation(
     }
 
     callouts = _build_callouts(
-        annual_growth_rate, quarterly_growth_rate, annual_kpis, quarterly_d_and_a_yoy
+        annual_growth_rate, quarterly_growth_rate, annual_kpis, quarterly_d_and_a_yoy, adjusted
     )
 
     return {
@@ -116,9 +120,20 @@ def _build_callouts(
     quarterly_growth_rate: float | None,
     annual_kpis: dict,
     quarterly_d_and_a_yoy: dict,
+    adjusted,
 ) -> list[str]:
     """Flags per the spec's 'Call outs' section."""
     callouts = []
+
+    if getattr(adjusted, "one_time_item_is_recurring", False):
+        callouts.append(
+            f"The 'one-time' income/expense item recurred in multiple of the last "
+            f"5 fiscal years, so it was NOT stripped out at its full TTM value -- "
+            f"instead the average of the years it occurred "
+            f"({adjusted.one_time_item_adjustment:,.0f}) was subtracted from pretax "
+            "income. Treat this line item as a normal part of earnings, not a "
+            "true one-off, when assessing earnings quality."
+        )
 
     if annual_growth_rate is not None and quarterly_growth_rate is not None:
         if abs(annual_growth_rate - quarterly_growth_rate) > 0.20:

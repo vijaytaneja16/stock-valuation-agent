@@ -133,14 +133,30 @@ TOOLS = [
                     "type": "object",
                     "properties": {
                         "ttm_pretax_income": {"type": "number"},
-                        "one_time_items": {"type": "number"},
+                        "annual_one_time_items": {
+                            "type": "array",
+                            "items": {"type": "number"},
+                            "description": (
+                                "The 'other income' / 'gain on sale of securities' "
+                                "style line item's value for each of the last up to "
+                                "5 fiscal years, most-recent-first (index 0 = TTM). "
+                                "Positive = income, negative = expense, 0 = none that "
+                                "year. If this item is nonzero in more than one of "
+                                "those years, the valuation tool treats it as "
+                                "recurring rather than one-time and averages the "
+                                "years it occurred instead of using the TTM figure "
+                                "alone -- so pass the real per-year history, not just "
+                                "a single number, whenever you can find it in the "
+                                "filings."
+                            ),
+                        },
                         "net_interest_income": {"type": "number"},
                         "ttm_tax_expense": {"type": "number"},
                         "reported_net_income": {"type": "number"},
                         "reported_diluted_eps": {"type": "number"},
                     },
                     "required": [
-                        "ttm_pretax_income", "one_time_items", "net_interest_income",
+                        "ttm_pretax_income", "annual_one_time_items", "net_interest_income",
                         "ttm_tax_expense", "reported_net_income", "reported_diluted_eps",
                     ],
                 },

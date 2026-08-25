@@ -38,7 +38,7 @@ def test_run_valuation_end_to_end():
         },
         ttm_income_inputs={
             "ttm_pretax_income": 300,
-            "one_time_items": 0,
+            "annual_one_time_items": [0, 0, 0],
             "net_interest_income": 0,
             "ttm_tax_expense": 60,   # 20% effective rate
             "reported_net_income": 240,
