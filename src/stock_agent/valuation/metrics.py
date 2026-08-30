@@ -57,9 +57,28 @@ def build_annual_kpi_table(income_statements: list[dict]) -> dict:
     }
 
 
+def calculate_free_cash_flow(operating_cash_flow: float, capital_expenditure: float) -> float:
+    """capital_expenditure may be reported as negative (a cash outflow) --
+    this always treats it as a positive spend amount to subtract.
+    """
+    return operating_cash_flow - abs(capital_expenditure)
+
+
+def calculate_fcf_to_net_income_ratio(free_cash_flow: float, net_income: float | None) -> float | None:
+    if net_income in (0, None):
+        return None
+    return free_cash_flow / net_income
+
+
 def build_cash_flow_kpi_table(cash_flow_statements: list[dict]) -> dict:
     ocf = [s["operatingCashFlow"] for s in cash_flow_statements]
     capex = [abs(s.get("capitalExpenditure", 0)) for s in cash_flow_statements]
+    net_income = [s.get("netIncome") for s in cash_flow_statements]
+    free_cash_flow = [calculate_free_cash_flow(o, c) for o, c in zip(ocf, capex)]
+    fcf_to_net_income_ratio = [
+        calculate_fcf_to_net_income_ratio(fcf, ni)
+        for fcf, ni in zip(free_cash_flow, net_income)
+    ]
     return {
         "periods": [s.get("date") for s in cash_flow_statements],
         "operating_cash_flow": ocf,
@@ -68,6 +87,9 @@ def build_cash_flow_kpi_table(cash_flow_statements: list[dict]) -> dict:
         "capex": capex,
         "capex_yoy_growth": yoy_growth_series(capex),
         "capex_cumulative_growth": cumulative_growth(capex),
+        "net_income": net_income,
+        "free_cash_flow": free_cash_flow,
+        "fcf_to_net_income_ratio": fcf_to_net_income_ratio,
     }
 
 

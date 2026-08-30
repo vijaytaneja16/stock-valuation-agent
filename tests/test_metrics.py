@@ -1,5 +1,6 @@
 from stock_agent.valuation.metrics import (
     build_annual_kpi_table,
+    build_cash_flow_kpi_table,
     cumulative_growth,
     margin_series,
     quarterly_yoy_comparison,
@@ -50,3 +51,24 @@ def test_quarterly_yoy_comparison_insufficient_history():
     quarters = [{"revenue": q} for q in [110, 105]]
     result = quarterly_yoy_comparison(quarters, "revenue")
     assert result["current"] is None
+
+
+def test_build_cash_flow_kpi_table():
+    statements = [
+        {"date": "2024", "operatingCashFlow": 150, "capitalExpenditure": -50, "netIncome": 125},
+        {"date": "2023", "operatingCashFlow": 130, "capitalExpenditure": -40, "netIncome": 100},
+    ]
+    kpis = build_cash_flow_kpi_table(statements)
+    assert kpis["free_cash_flow"] == [100, 90]  # 150-50, 130-40
+    assert kpis["fcf_to_net_income_ratio"][0] == 0.8  # 100/125
+    assert kpis["fcf_to_net_income_ratio"][1] == 0.9  # 90/100
+
+
+def test_fcf_to_net_income_ratio_handles_missing_or_zero_net_income():
+    statements = [
+        {"date": "2024", "operatingCashFlow": 100, "capitalExpenditure": -20, "netIncome": 0},
+        {"date": "2023", "operatingCashFlow": 100, "capitalExpenditure": -20},  # no netIncome key at all
+    ]
+    kpis = build_cash_flow_kpi_table(statements)
+    assert kpis["fcf_to_net_income_ratio"][0] is None
+    assert kpis["fcf_to_net_income_ratio"][1] is None

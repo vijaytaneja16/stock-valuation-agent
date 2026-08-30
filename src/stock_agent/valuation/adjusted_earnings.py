@@ -19,36 +19,29 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 
-def resolve_one_time_item_adjustment(annual_one_time_items: list[float]) -> tuple[float, bool]:
-    """Decide whether the 'one-time' item is genuinely one-time or recurring,
-    and return the value to subtract from pretax income.
+def resolve_one_time_item_adjustment(annual_one_time_items: list[float]) -> tuple[float, float]:
+    """Normalize a 'one-time' income/expense line item for TTM pretax income.
 
     annual_one_time_items: the line item's value for each of the last up to
     5 fiscal years, ordered MOST RECENT FIRST (index 0 = TTM/most recent
     year). Positive = income, negative = expense.
 
-    Rule: if the item is nonzero in more than one of those years, it's
-    treated as recurring -- the adjustment used is the average of the years
-    in which it occurred (not diluted by zero years), rather than just the
-    most recent year's figure. If it's nonzero in zero or one year, it's
-    treated as genuinely one-time and the most recent year's actual value
-    is used.
+    The TTM's actual value is always stripped out of TTM pretax income
+    first (so this year's specific swing -- which could be an anomaly in
+    either direction -- doesn't distort the base), and the average across
+    the full lookback window (zero years included) is always added back,
+    since averaging gives a better estimate of the item's normal long-term
+    contribution to earnings than any single year's actual figure --
+    whether it occurred once or several times in the window.
 
-    Returns (adjustment_value, is_recurring).
+    Returns (ttm_value_to_strip, average_to_add_back).
     """
     if not annual_one_time_items:
-        return 0.0, False
+        return 0.0, 0.0
 
-    nonzero_years = [v for v in annual_one_time_items if v != 0]
-
-    if len(nonzero_years) > 1:
-        # Recurring -- smooth it by averaging the years it actually occurred.
-        adjustment = sum(nonzero_years) / len(nonzero_years)
-        return adjustment, True
-
-    # Zero or one occurrence in the lookback window -- genuinely one-time.
-    # Use the most recent year's (TTM) actual value, which may be 0.
-    return annual_one_time_items[0], False
+    ttm_value = annual_one_time_items[0]
+    average = sum(annual_one_time_items) / len(annual_one_time_items)
+    return ttm_value, average
 
 
 @dataclass
@@ -67,8 +60,8 @@ class AdjustedEarningsInputs:
 
 @dataclass
 class AdjustedEarningsResult:
-    one_time_item_adjustment: float
-    one_time_item_is_recurring: bool
+    one_time_item_ttm_value_stripped: float
+    one_time_item_average_added_back: float
     adjusted_pretax_income: float
     effective_tax_rate: float
     tax_rate_applied: float
@@ -78,14 +71,19 @@ class AdjustedEarningsResult:
 
 
 def calculate_adjusted_earnings(i: AdjustedEarningsInputs) -> AdjustedEarningsResult:
-    one_time_adjustment, is_recurring = resolve_one_time_item_adjustment(i.annual_one_time_items)
+    ttm_value, average = resolve_one_time_item_adjustment(i.annual_one_time_items)
 
-    adjusted_pretax = i.ttm_pretax_income - one_time_adjustment
+    # Always strip the actual TTM one-time value out first...
+    adjusted_pretax = i.ttm_pretax_income - ttm_value
+    # ...then always add back the historical average, since it's a better
+    # estimate of the item's normal long-term contribution to earnings than
+    # this year's actual figure alone.
+    adjusted_pretax += average
 
     if i.net_interest_income > 0:
         adjusted_pretax -= i.net_interest_income
-    else:
-        adjusted_pretax += abs(i.net_interest_income)
+    #else:
+       # adjusted_pretax += abs(i.net_interest_income)
 
     effective_tax_rate = (
         i.ttm_tax_expense / i.ttm_pretax_income if i.ttm_pretax_income else 0.0
@@ -93,10 +91,10 @@ def calculate_adjusted_earnings(i: AdjustedEarningsInputs) -> AdjustedEarningsRe
 
     if effective_tax_rate < 0.20:
         tax_rate_applied = 0.20
-    elif effective_tax_rate <= 0.25:
+    elif effective_tax_rate <= 0.30:
         tax_rate_applied = effective_tax_rate
     else:
-        tax_rate_applied = 0.25
+        tax_rate_applied = 0.30
 
     adjusted_net_income = adjusted_pretax * (1 - tax_rate_applied)
 
@@ -106,8 +104,8 @@ def calculate_adjusted_earnings(i: AdjustedEarningsInputs) -> AdjustedEarningsRe
     adjusted_eps = i.reported_diluted_eps * adjustment_ratio
 
     return AdjustedEarningsResult(
-        one_time_item_adjustment=one_time_adjustment,
-        one_time_item_is_recurring=is_recurring,
+        one_time_item_ttm_value_stripped=ttm_value,
+        one_time_item_average_added_back=average,
         adjusted_pretax_income=adjusted_pretax,
         effective_tax_rate=effective_tax_rate,
         tax_rate_applied=tax_rate_applied,

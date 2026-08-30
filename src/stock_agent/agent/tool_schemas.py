@@ -128,7 +128,15 @@ TOOLS = [
                 "annual_income_statements": {"type": "array", "items": {"type": "object"}},
                 "quarterly_income_statements": {"type": "array", "items": {"type": "object"}},
                 "annual_cash_flows": {"type": "array", "items": {"type": "object"}},
-                "latest_balance_sheet": {"type": "object"},
+                "latest_quarter_balance_sheet": {
+                    "type": "object",
+                    "description": (
+                        "The MOST RECENT QUARTER's balance sheet (not the "
+                        "most recent fiscal year's) with keys: totalAssets, "
+                        "goodwillAndIntangibleAssets, propertyPlantEquipmentNet, "
+                        "totalLiabilities."
+                    ),
+                },
                 "ttm_income_inputs": {
                     "type": "object",
                     "properties": {
@@ -162,10 +170,27 @@ TOOLS = [
                 },
                 "market_cap": {"type": "number"},
                 "stock_price": {"type": "number"},
+                "ttm_operating_cash_flow": {
+                    "type": "number",
+                    "description": (
+                        "Trailing-twelve-month operating cash flow (typically "
+                        "the sum of the last 4 quarters' cash flow statements). "
+                        "Optional -- enables the TTM free-cash-flow/net-income "
+                        "callout; omit if unavailable."
+                    ),
+                },
+                "ttm_capital_expenditure": {
+                    "type": "number",
+                    "description": (
+                        "Trailing-twelve-month capital expenditure (sum of the "
+                        "last 4 quarters). Optional, pairs with "
+                        "ttm_operating_cash_flow."
+                    ),
+                },
             },
             "required": [
                 "annual_income_statements", "quarterly_income_statements",
-                "annual_cash_flows", "latest_balance_sheet", "ttm_income_inputs",
+                "annual_cash_flows", "latest_quarter_balance_sheet", "ttm_income_inputs",
                 "market_cap", "stock_price",
             ],
         },
