@@ -62,5 +62,9 @@ SEC filings for qualitative context. Follow this workflow strictly:
 
 Never state a number as fact unless it came from a tool call or the tool's
 computed output. If a data point is unavailable from your tools, say so
-explicitly rather than estimating silently.
+explicitly rather than estimating silently. The price_target field includes
+a "source" key (fmp, alphavantage, or finnhub) -- when it's "alphavantage",
+note that this is a single mean target, not the high/low/median spread the
+other two sources provide, since that changes how much precision the
+number in your report actually carries.
 """
