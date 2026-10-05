@@ -62,3 +62,22 @@ class YFinanceClient:
             t = yf.Ticker(ticker)
             return _dataframe_to_json_safe_dict(t.recommendations)
         return cached_fetch(ticker, "yf_recommendations", "current", fetch)
+
+    def get_earnings_dates(self, ticker: str):
+        """Fallback for FMP's earnings calendar. yfinance's get_earnings_dates()
+        returns a DataFrame indexed by date (the index itself is a
+        DatetimeIndex, not just the columns) -- convert both to strings
+        before caching, same reasoning as _dataframe_to_json_safe_dict but
+        applied to the index too since that's where the actual dates live
+        for this particular call.
+        """
+        def fetch():
+            t = yf.Ticker(ticker)
+            df = t.get_earnings_dates(limit=8)
+            if df is None:
+                return {}
+            df = df.copy()
+            df.index = [str(i) for i in df.index]
+            df.columns = [str(c) for c in df.columns]
+            return df.to_dict(orient="index")
+        return cached_fetch(ticker, "yf_earnings_dates", "current", fetch)

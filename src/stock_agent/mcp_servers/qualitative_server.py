@@ -26,5 +26,14 @@ def search_filing_text(ticker: str, query: str, forms: str = "10-K,10-Q") -> dic
     return router.search_filing_text(query, ticker=ticker, forms=forms)
 
 
+@mcp.tool()
+def get_recent_news(ticker: str, days_back: int = 30) -> list:
+    """Recent news headlines for this company. Use this to spot mentions
+    of catalysts that don't come from a structured calendar -- investor
+    days, product launches, conference appearances, guidance updates.
+    """
+    return router.get_recent_news(ticker, days_back)
+
+
 if __name__ == "__main__":
     mcp.run()

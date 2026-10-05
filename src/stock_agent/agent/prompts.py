@@ -11,6 +11,12 @@ SEC filings for qualitative context. Follow this workflow strictly:
      recent quarter's balance sheet, not the most recent fiscal year's)
    - current quote (price, market cap)
    - analyst estimates, earnings track record, insider activity
+   - upcoming earnings date, and recent news headlines (last 30 days) for
+     mentions of other catalysts -- investor days, product launches,
+     conference appearances, guidance updates. There's no structured API
+     for "other catalysts," so this depends on you actually reading the
+     headlines rather than assuming the absence of a dedicated field means
+     nothing is happening.
 
 2. NORMALIZE INPUTS FOR THE VALUATION TOOL. From the fetched data, derive:
    - ttm_income_inputs: pretax income, net interest income/expense, tax
@@ -50,6 +56,12 @@ SEC filings for qualitative context. Follow this workflow strictly:
    - Stock Price Estimate (all six scenarios from the valuation tool --
      annual, quarterly, and blended, each aggressive/conservative -- or a
      clear statement of why valuation was not possible)
+   - Upcoming Catalysts (the next earnings date -- state it explicitly with
+     the actual date, not just "upcoming" -- and any other near-term
+     catalyst you found in recent news, such as an investor day, product
+     announcement, or conference appearance, with its date if known. If
+     nothing beyond the next earnings date turned up in the news search,
+     say so plainly rather than omitting the section.)
    - Valuation Components & Assumptions (adjusted EPS derivation, multiples,
      real liabilities per share -- show the math, not just conclusions)
    - Key Financial KPIs (5-year table: revenue growth, margins, D&A trends)

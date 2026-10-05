@@ -88,3 +88,16 @@ class FMPClient:
             ticker, "price_target_consensus", "current",
             lambda: self._get("price-target-consensus", {"symbol": ticker}),
         )
+
+    def get_earnings_calendar(self, ticker: str, limit: int = 8):
+        """Past and upcoming earnings announcement dates for this ticker
+        (includes the next confirmed/estimated earnings date, which is
+        usually the item furthest out in the returned list -- check each
+        entry's date against today rather than assuming a fixed position).
+        Short TTL in cache.py since this is date-sensitive, unlike a
+        5-year-old income statement.
+        """
+        return cached_fetch(
+            ticker, "earnings_calendar", "current",
+            lambda: self._get("earnings", {"symbol": ticker, "limit": limit}),
+        )

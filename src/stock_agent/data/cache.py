@@ -20,6 +20,10 @@ DEFAULT_TTL_SECONDS = 60 * 60 * 24 * 7  # 7 days
 TTL_OVERRIDES = {
     "quote": 60 * 60,  # 1 hour
     "price_target": 60 * 60 * 24,  # 1 day
+    "price_target_consensus": 60 * 60 * 24,  # 1 day
+    "earnings_calendar": 60 * 60 * 24,  # 1 day -- dates can be confirmed/revised
+    "yf_earnings_dates": 60 * 60 * 24,  # 1 day
+    "company_news": 60 * 60 * 6,  # 6 hours -- news is the most time-sensitive dataset here
 }
 
 

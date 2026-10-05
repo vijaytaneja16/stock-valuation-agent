@@ -123,6 +123,41 @@ class DataRouter:
             "insider_transactions", ticker, lambda: self.finnhub.get_insider_transactions(ticker)
         )
 
+    # --- Catalysts: next earnings date, recent news for other events ---
+    # (investor days, product launches, conferences -- there's no clean
+    # structured API for "other catalysts," so this leans on recent news
+    # headlines and SEC filings for the agent to read and judge itself.)
+
+    def get_upcoming_earnings(self, ticker: str):
+        """Past and upcoming earnings dates. FMP primary, yfinance fallback.
+        Returns FMP's/yfinance's raw list/dict as-is -- filtering to just
+        the next FUTURE date is left to the agent, since "next" depends on
+        today's date, which this router has no reason to know about.
+        """
+        try:
+            return {"source": "fmp", "data": self.fmp.get_earnings_calendar(ticker)}
+        except (FMPRateLimitError, Exception) as e:
+            logger.warning(f"FMP earnings calendar failed for {ticker} ({e}); falling back to yfinance")
+            try:
+                return {"source": "yfinance", "data": self.yfinance.get_earnings_dates(ticker)}
+            except Exception as e2:
+                logger.warning(f"yfinance earnings dates also failed for {ticker} ({e2})")
+                return None
+
+    def get_recent_news(self, ticker: str, days_back: int = 30):
+        """Recent company news headlines -- used to spot mentions of
+        investor days, product launches, or other catalysts that don't
+        come from a structured calendar API. Finnhub-only; degrades to
+        None on FinnhubAccessError like the other Finnhub-only fields.
+        """
+        from datetime import date, timedelta
+        to_date = date.today().isoformat()
+        from_date = (date.today() - timedelta(days=days_back)).isoformat()
+        return self._finnhub_field_or_none(
+            "company_news", ticker,
+            lambda: self.finnhub.get_company_news(ticker, from_date, to_date),
+        )
+
     # --- Qualitative (EDGAR) ---
 
     def get_recent_filings(self, ticker: str):

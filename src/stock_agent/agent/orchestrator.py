@@ -56,6 +56,10 @@ class ToolDispatcher:
                     query=tool_input["query"],
                     forms=tool_input.get("forms", "10-K,10-Q"),
                 )
+            if tool_name == "get_upcoming_earnings":
+                return self.router.get_upcoming_earnings(**tool_input)
+            if tool_name == "get_recent_news":
+                return self.router.get_recent_news(**tool_input)
             if tool_name == "calculate_valuation":
                 return run_valuation(**tool_input)
             return {"error": f"Unknown tool: {tool_name}"}

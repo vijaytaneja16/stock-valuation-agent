@@ -60,5 +60,14 @@ def get_insider_activity(ticker: str) -> list:
     return router.get_insider_activity(ticker)
 
 
+@mcp.tool()
+def get_upcoming_earnings(ticker: str) -> dict:
+    """Past and upcoming earnings announcement dates for this ticker. The
+    caller is responsible for identifying which date is actually in the
+    future relative to today -- this tool doesn't filter by date itself.
+    """
+    return router.get_upcoming_earnings(ticker)
+
+
 if __name__ == "__main__":
     mcp.run()

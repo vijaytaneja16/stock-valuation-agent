@@ -115,6 +115,36 @@ TOOLS = [
         },
     },
     {
+        "name": "get_upcoming_earnings",
+        "description": (
+            "Past and upcoming earnings announcement dates for this ticker. "
+            "You are responsible for identifying which date is actually in "
+            "the future relative to today -- this tool does not filter by date."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {"ticker": {"type": "string"}},
+            "required": ["ticker"],
+        },
+    },
+    {
+        "name": "get_recent_news",
+        "description": (
+            "Recent news headlines for this company. Use this to look for "
+            "mentions of catalysts that don't come from a structured "
+            "calendar -- investor days, product launches, conference "
+            "appearances, guidance updates."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "ticker": {"type": "string"},
+                "days_back": {"type": "integer", "default": 30},
+            },
+            "required": ["ticker"],
+        },
+    },
+    {
         "name": "calculate_valuation",
         "description": (
             "Run the full deterministic valuation algorithm: adjusted EPS, "
